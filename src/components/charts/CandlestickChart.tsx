@@ -7,12 +7,10 @@ import {
   ColorType,
   CandlestickSeries,
   DeepPartial,
-  ChartOptions,
-  customSeriesDefaultOptions
+  ChartOptions
 } from 'lightweight-charts'
 import type { OHLCV } from '@/types'
 import { useTheme } from 'next-themes'
-import { custom } from 'zod'
 
 interface Props {
   data: OHLCV[]
@@ -22,13 +20,13 @@ const LIGHT_CHART_OPTIONS: DeepPartial<ChartOptions> = {
   layout: {
     background: {
       type: ColorType.Solid,
-      color: '#FFFFFF'
+      color: '#fbfbfc'
     },
     textColor: '#191919'
   },
   grid: {
-    vertLines: { color: '#D6DCDE' },
-    horzLines: { color: '#D6DCDE' }
+    vertLines: { color: '#e5e7eb' },
+    horzLines: { color: '#e5e7eb' }
   }
 }
 
@@ -36,13 +34,13 @@ const DARK_CHART_OPTIONS: DeepPartial<ChartOptions> = {
   layout: {
     background: {
       type: ColorType.Solid,
-      color: '#0a0a0a'
+      color: '#1a1b1e'
     },
     textColor: '#fafafa'
   },
   grid: {
-    vertLines: { color: '#444' },
-    horzLines: { color: '#444' }
+    vertLines: { color: '#2c2e33' },
+    horzLines: { color: '#2c2e33' }
   }
 }
 
@@ -52,6 +50,7 @@ const chartLayoutOptions = (theme: string): DeepPartial<ChartOptions> => {
 
 export const CandlestickChart = ({ data }: Props) => {
   const { resolvedTheme } = useTheme()
+  const initialTheme = useRef(resolvedTheme)
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
@@ -59,24 +58,26 @@ export const CandlestickChart = ({ data }: Props) => {
   useEffect(() => {
     if (!containerRef.current) return
 
-    const handleResize = () => {
-      chart.applyOptions({ width: containerRef.current?.clientWidth })
-    }
-
     const chart = createChart(containerRef.current, {
-      ...chartLayoutOptions(resolvedTheme as string),
-      width: containerRef.current?.clientWidth
+      ...chartLayoutOptions(initialTheme.current as string),
+      width: containerRef.current.clientWidth,
+      height: containerRef.current.clientHeight
     })
     chart.timeScale().fitContent()
     const series = chart.addSeries(CandlestickSeries)
     chartRef.current = chart
     seriesRef.current = series
 
-    window.addEventListener('resize', handleResize)
+    const observer = new ResizeObserver(([entry]) => {
+      chart.applyOptions({
+        width: entry.contentRect.width,
+        height: entry.contentRect.height
+      })
+    })
+    observer.observe(containerRef.current)
 
     return () => {
-      window.removeEventListener('resize', handleResize)
-
+      observer.disconnect()
       chart.remove()
     }
   }, [])
@@ -97,5 +98,5 @@ export const CandlestickChart = ({ data }: Props) => {
     })
   }, [resolvedTheme])
 
-  return <div ref={containerRef} className="h-[400px] w-full"></div>
+  return <div ref={containerRef} className="h-64 w-full sm:h-72" />
 }

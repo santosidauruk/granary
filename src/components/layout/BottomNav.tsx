@@ -19,7 +19,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed right-0 bottom-0 left-0 z-50 mx-auto flex max-w-xl justify-between border-t px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] backdrop-blur"
+      className="bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed right-0 bottom-0 left-0 z-50 mx-auto flex max-w-xl justify-between border-t px-2 pt-1.5 pb-[calc(env(safe-area-inset-bottom)+0.375rem)] backdrop-blur"
     >
       {navItems.map((item) => {
         const isActive = pathname.startsWith(item.href)
@@ -29,13 +29,13 @@ export function BottomNav() {
             href={item.href}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex min-w-0 flex-1 flex-col items-center gap-1 rounded-lg px-1.5 py-1.5 text-[11px] leading-none transition-colors',
+              'flex min-w-0 flex-1 flex-col items-center gap-1 rounded-lg px-1 py-1.5 text-[10px] leading-none transition-colors active:scale-[0.98]',
               isActive
                 ? 'bg-primary/10 text-primary'
                 : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
             )}
           >
-            <item.icon className="h-5 w-5 shrink-0" strokeWidth={2.2} />
+            <item.icon className="size-[18px] shrink-0" strokeWidth={2.2} />
             <span className="truncate">{item.label}</span>
           </Link>
         )

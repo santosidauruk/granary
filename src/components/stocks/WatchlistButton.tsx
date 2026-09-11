@@ -28,9 +28,15 @@ export function WatchlistButton({ stockCode }: WatchlistButtonProps) {
   }
 
   return (
-    <Button variant={has ? 'default' : 'outline'} size="sm" onClick={toggle}>
-      <Star className={`mr-1 h-4 w-4 ${has ? 'fill-current' : ''}`} />
-      {has ? 'Watching' : 'Watch'}
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      aria-label={has ? 'Remove from watchlist' : 'Add to watchlist'}
+      title={has ? 'Remove from watchlist' : 'Add to watchlist'}
+      className={has ? 'text-primary' : 'text-muted-foreground'}
+      onClick={toggle}
+    >
+      <Star className={`h-5 w-5 ${has ? 'fill-current' : ''}`} />
     </Button>
   )
 }
