@@ -50,6 +50,45 @@ const stockJson = (overrides: Record<string, unknown> = {}) => ({
   ...overrides
 })
 
+const historyJson = [
+  {
+    time: 1_725_235_200,
+    open: 8950,
+    high: 9100,
+    low: 8900,
+    close: 9000,
+    volume: 1_000_000
+  }
+]
+
+function mockCachedStock({
+  stockOverrides = {},
+  history = historyJson
+}: {
+  stockOverrides?: Record<string, unknown>
+  history?: unknown[]
+} = {}) {
+  useStockMeta.setState({
+    meta: {
+      BBCA: { name: 'Bank Central Asia Tbk', sector: 'Financial Services' }
+    }
+  })
+
+  fetchMock.mockImplementation((url: string) => {
+    if (url.startsWith('/api/stocks/BBCA.JK/history')) {
+      return Promise.resolve(
+        new Response(JSON.stringify(history), { status: 200 })
+      )
+    }
+    if (url.startsWith('/api/stocks/BBCA')) {
+      return Promise.resolve(
+        new Response(JSON.stringify(stockJson(stockOverrides)), { status: 200 })
+      )
+    }
+    return Promise.resolve(new Response('{}', { status: 200 }))
+  })
+}
+
 beforeEach(() => {
   localStorage.clear()
   useStockMeta.setState({ meta: {} })
@@ -63,6 +102,34 @@ afterEach(() => {
 })
 
 describe('StockDetailPageClient', () => {
+  it('renders the chart before the stock metrics', async () => {
+    mockCachedStock()
+
+    renderPage('BBCA')
+
+    const chart = await screen.findByTestId('candlestick-chart')
+    const firstMetric = screen.getByTestId('metric-tile-open')
+
+    expect(
+      chart.compareDocumentPosition(firstMetric) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+  })
+
+  it('renders the timeframe selector after the chart', async () => {
+    mockCachedStock()
+
+    renderPage('BBCA')
+
+    const chart = await screen.findByTestId('candlestick-chart')
+    const selectedTimeframe = screen.getByRole('button', { name: '1D' })
+
+    expect(
+      chart.compareDocumentPosition(selectedTimeframe) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+  })
+
   it('renders cached meta name+sector and does not fetch profile', async () => {
     useStockMeta.setState({
       meta: {
@@ -158,32 +225,14 @@ describe('StockDetailPageClient', () => {
   })
 
   it('groups stock metrics into compact metric tiles', async () => {
-    useStockMeta.setState({
-      meta: {
-        BBCA: { name: 'Bank Central Asia Tbk', sector: 'Financial Services' }
-      }
-    })
-
-    fetchMock.mockImplementation((url: string) => {
-      if (url.startsWith('/api/stocks/BBCA/history')) {
-        return Promise.resolve(new Response('[]', { status: 200 }))
-      }
-      if (url.startsWith('/api/stocks/BBCA')) {
-        return Promise.resolve(
-          new Response(
-            JSON.stringify(
-              stockJson({
-                open: 8950,
-                high: 9100,
-                low: 8900,
-                marketCap: 1_000_000_000
-              })
-            ),
-            { status: 200 }
-          )
-        )
-      }
-      return Promise.resolve(new Response('{}', { status: 200 }))
+    mockCachedStock({
+      stockOverrides: {
+        open: 8950,
+        high: 9100,
+        low: 8900,
+        marketCap: 1_000_000_000
+      },
+      history: []
     })
 
     renderPage('BBCA')
@@ -197,5 +246,19 @@ describe('StockDetailPageClient', () => {
     expect(screen.getByTestId('metric-tile-market-cap')).toHaveTextContent(
       'Market cap'
     )
+  })
+
+  it('shows ROE when it is available in the stock detail', async () => {
+    mockCachedStock({
+      stockOverrides: { roe: 18.31 },
+      history: []
+    })
+
+    renderPage('BBCA')
+
+    expect(await screen.findByTestId('metric-tile-roe')).toHaveTextContent(
+      'ROE'
+    )
+    expect(screen.getByTestId('metric-tile-roe')).toHaveTextContent('+18.31%')
   })
 })

@@ -7,7 +7,10 @@ import { useStockStore } from '@/stores/useStockStore'
 import { useStockMeta } from '@/stores/useStockMeta'
 import { TIMEFRAMES } from '@/lib/constants'
 import { fetchStockProfile } from '@/lib/stock-meta'
-import { StockDetailCard } from '@/components/stocks/StockDetail'
+import {
+  StockDetailHeader,
+  StockMetrics
+} from '@/components/stocks/StockDetail'
 import { TimeframeSelector } from '@/components/stocks/TimeframeSelector'
 import { WatchlistButton } from '@/components/stocks/WatchlistButton'
 import { CandlestickChart } from '@/components/charts/CandlestickChart'
@@ -61,11 +64,11 @@ export function StockDetailPageClient({ code }: Props) {
     : undefined
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      <div className="flex min-h-8 items-center justify-between">
         <Link
           href="/portfolio"
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
+          className="text-primary hover:text-primary/80 inline-flex min-h-8 items-center gap-1 text-xs font-medium transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -74,34 +77,41 @@ export function StockDetailPageClient({ code }: Props) {
       </div>
 
       {stockLoading ? (
-        <div className="space-y-2">
-          <Skeleton className="h-8 w-40" />
-          <Skeleton className="h-10 w-60" />
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-24" />
+            <Skeleton className="h-4 w-40" />
+          </div>
+          <Skeleton className="h-12 w-32" />
         </div>
       ) : displayed ? (
-        <StockDetailCard stock={displayed} isRefetching={stockIsRefetching} />
+        <StockDetailHeader stock={displayed} isRefetching={stockIsRefetching} />
       ) : (
         <div className="text-muted-foreground py-8 text-center">
           Stock not found.
         </div>
       )}
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Chart</h2>
-          <TimeframeSelector />
-        </div>
-
+      <section
+        aria-label="Price chart"
+        className="border-border/80 bg-card/45 overflow-hidden rounded-lg border"
+      >
         {historyLoading ? (
-          <Skeleton className="h-[400px] w-full" />
+          <Skeleton className="h-64 w-full rounded-none sm:h-72" />
         ) : history && history.length > 0 ? (
           <CandlestickChart data={history} />
         ) : (
-          <div className="text-muted-foreground flex h-[400px] items-center justify-center rounded-md border">
+          <div className="text-muted-foreground flex h-64 items-center justify-center px-4 text-center text-xs sm:h-72">
             No chart data available.
           </div>
         )}
-      </div>
+
+        <div className="border-t p-1.5">
+          <TimeframeSelector />
+        </div>
+      </section>
+
+      {displayed && <StockMetrics stock={displayed} />}
     </div>
   )
 }

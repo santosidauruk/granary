@@ -8,10 +8,10 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="mx-auto flex min-h-screen max-w-xl flex-col">
+    <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col overflow-x-clip">
       <Header />
-      <div className="relative flex flex-1">
-        <main className="flex-1 overflow-auto p-4 pb-10 md:p-6 md:pb-12">
+      <div className="relative flex min-w-0 flex-1">
+        <main className="min-w-0 flex-1 p-4 pb-[calc(env(safe-area-inset-bottom)+5.25rem)] md:p-5 md:pb-[calc(env(safe-area-inset-bottom)+5.25rem)]">
           {children}
         </main>
         <BottomNav />
